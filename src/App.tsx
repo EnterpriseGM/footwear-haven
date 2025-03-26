@@ -13,7 +13,14 @@ import Login from "@/pages/Login";
 import Admin from "@/pages/Admin";
 import NotFound from "@/pages/NotFound";
 
-const queryClient = new QueryClient();
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

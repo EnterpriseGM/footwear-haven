@@ -1,8 +1,37 @@
+
 # Welcome to your Lovable project
 
 ## Project info
 
 **URL**: https://lovable.dev/projects/60a8492c-89fd-4543-b4e3-da8619e560dd
+
+## Current Status
+
+This project is a shoe e-commerce application with:
+- Homepage to view all products
+- Detail page to see product details
+- Login/logout functionality
+- Cart functionality
+- Admin page to manage products
+
+Currently, the application is using a mock API client (src/lib/api.ts) for all data operations.
+
+## Next Steps to Create Monorepo
+
+To properly set up this project as a monorepo with separate frontend and backend:
+
+1. Create a proper monorepo structure using a tool like Nx, Turborepo, or Yarn Workspaces
+2. Move the current React application to a 'frontend' package
+3. Create a 'backend' package with Express.js for handling API requests
+4. Create a 'shared' package for types and utilities used by both frontend and backend
+
+For the backend, we'll need Express.js and related packages:
+```sh
+# To be run in the backend package directory once monorepo is set up
+npm install express cors body-parser uuid
+```
+
+These steps should be done as a separate process from the current web application.
 
 ## How can I edit this code?
 
