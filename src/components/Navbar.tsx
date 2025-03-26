@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, User, Menu, X } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ShoppingBag, User, Menu, X, LayoutDashboard } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useCart } from '@/context/CartContext';
@@ -11,6 +11,7 @@ const Navbar: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const { totalItems } = useCart();
   const location = useLocation();
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -29,6 +30,11 @@ const Navbar: React.FC = () => {
   useEffect(() => {
     setIsOpen(false);
   }, [location.pathname]);
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   return (
     <header 
@@ -66,7 +72,8 @@ const Navbar: React.FC = () => {
               About
             </Link>
             {isAuthenticated && user?.isAdmin && (
-              <Link to="/admin" className="text-foreground/80 hover:text-foreground transition-colors">
+              <Link to="/admin" className="text-foreground/80 hover:text-foreground transition-colors flex items-center">
+                <LayoutDashboard className="mr-1 h-4 w-4" />
                 Admin
               </Link>
             )}
@@ -79,7 +86,7 @@ const Navbar: React.FC = () => {
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
                 <span className="text-sm">Hello, {user?.name}</span>
-                <Button variant="ghost" size="sm" onClick={() => logout()}>
+                <Button variant="ghost" size="sm" onClick={handleLogout}>
                   Logout
                 </Button>
               </div>
@@ -118,7 +125,8 @@ const Navbar: React.FC = () => {
               About
             </Link>
             {isAuthenticated && user?.isAdmin && (
-              <Link to="/admin" className="text-foreground/80 hover:text-foreground transition-colors py-2">
+              <Link to="/admin" className="text-foreground/80 hover:text-foreground transition-colors py-2 flex items-center">
+                <LayoutDashboard className="mr-1 h-4 w-4" />
                 Admin
               </Link>
             )}
@@ -128,7 +136,7 @@ const Navbar: React.FC = () => {
             {isAuthenticated ? (
               <div className="flex flex-col items-center space-y-4">
                 <span>Hello, {user?.name}</span>
-                <Button variant="outline" onClick={() => logout()}>
+                <Button variant="outline" onClick={handleLogout}>
                   Logout
                 </Button>
               </div>

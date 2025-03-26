@@ -10,8 +10,11 @@ import Index from "@/pages/Index";
 import ProductDetail from "@/pages/ProductDetail";
 import Cart from "@/pages/Cart";
 import Login from "@/pages/Login";
-import Admin from "@/pages/Admin";
 import NotFound from "@/pages/NotFound";
+
+// Admin views
+import AdminDashboard from "@/admin/pages/AdminDashboard";
+import ProductsManagement from "@/admin/pages/ProductsManagement";
 
 // Create a client
 const queryClient = new QueryClient({
@@ -31,11 +34,17 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
             <Routes>
+              {/* Customer Routes */}
               <Route path="/" element={<Index />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/login" element={<Login />} />
-              <Route path="/admin" element={<Admin />} />
+              
+              {/* Admin Routes */}
+              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin/products" element={<ProductsManagement />} />
+              
+              {/* 404 Route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
