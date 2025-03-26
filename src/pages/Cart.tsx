@@ -84,7 +84,7 @@ const Cart: React.FC = () => {
               <p className="text-muted-foreground mb-6">
                 Looks like you haven't added anything to your cart yet.
               </p>
-              <Link to="/products">
+              <Link to="/">
                 <Button>
                   Continue Shopping
                 </Button>

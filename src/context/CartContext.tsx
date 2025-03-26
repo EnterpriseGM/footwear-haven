@@ -9,10 +9,14 @@ interface CartContextType {
   totalItems: number;
   totalPrice: number;
   loading: boolean;
-  addToCart: (product: Product, quantity: number, size: number, color: string) => Promise<void>;
-  removeFromCart: (cartItemId: string) => Promise<void>;
-  updateCartItem: (cartItemId: string, quantity: number) => Promise<void>;
+  // Renamed functions to match what's used in components
+  addToCart: (product: Product | string, quantity: number, size: number, color: string) => Promise<void>;
+  removeItem: (cartItemId: string) => Promise<void>;
+  updateQuantity: (cartItemId: string, quantity: number) => Promise<void>;
   clearCart: () => Promise<void>;
+  // Add these properties to match what's used in Cart.tsx
+  items: CartItem[];
+  products: Map<string, Product>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -20,18 +24,27 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [products, setProducts] = useState<Product[]>([]);
+  const [productsData, setProductsData] = useState<Product[]>([]);
+  // Create a Map for easier product lookup
+  const [productsMap, setProductsMap] = useState<Map<string, Product>>(new Map());
   
   const fetchCartAndProducts = async () => {
     setLoading(true);
     try {
-      const [cartData, productsData] = await Promise.all([
+      const [cartData, products] = await Promise.all([
         apiClient.getCart(),
         apiClient.getProducts()
       ]);
       
       setCart(cartData);
-      setProducts(productsData);
+      setProductsData(products);
+      
+      // Create a Map from products array for efficient lookups
+      const productsMap = new Map();
+      products.forEach(product => {
+        productsMap.set(product.id, product);
+      });
+      setProductsMap(productsMap);
     } catch (error) {
       console.error('Failed to fetch cart or products:', error);
       toast.error('Failed to load cart');
@@ -49,14 +62,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   // Calculate total price
   const totalPrice = cart.reduce((total, item) => {
-    const product = products.find(p => p.id === item.productId);
+    const product = productsMap.get(item.productId);
     return total + (product?.price || 0) * item.quantity;
   }, 0);
   
-  const addToCart = async (product: Product, quantity: number, size: number, color: string) => {
+  const addToCart = async (productOrId: Product | string, quantity: number, size: number, color: string) => {
     try {
+      const productId = typeof productOrId === 'string' ? productOrId : productOrId.id;
+      
       await apiClient.addToCart({
-        productId: product.id,
+        productId,
         quantity,
         size,
         color
@@ -70,7 +85,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
   
-  const removeFromCart = async (cartItemId: string) => {
+  const removeItem = async (cartItemId: string) => {
     try {
       await apiClient.removeFromCart(cartItemId);
       toast.success('Item removed from cart');
@@ -81,7 +96,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
   
-  const updateCartItem = async (cartItemId: string, quantity: number) => {
+  const updateQuantity = async (cartItemId: string, quantity: number) => {
     try {
       await apiClient.updateCartItem(cartItemId, { quantity });
       toast.success('Cart updated');
@@ -114,9 +129,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         totalPrice,
         loading,
         addToCart,
-        removeFromCart,
-        updateCartItem,
-        clearCart
+        removeItem,
+        updateQuantity,
+        clearCart,
+        // Add these properties to match what's used in Cart.tsx
+        items: cart,
+        products: productsMap
       }}
     >
       {children}

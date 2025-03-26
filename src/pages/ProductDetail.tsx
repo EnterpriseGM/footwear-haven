@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Product } from '@/lib/api';
@@ -104,13 +103,13 @@ const ProductDetail: React.FC = () => {
             >
               <div className="aspect-square overflow-hidden rounded-lg bg-secondary/30">
                 <img
-                  src={product.images[selectedImage]}
-                  alt={product.name}
+                  src={product?.images[selectedImage]}
+                  alt={product?.name}
                   className="h-full w-full object-contain object-center"
                 />
               </div>
               
-              {product.images.length > 1 && (
+              {product?.images.length > 1 && (
                 <div className="flex space-x-2 overflow-auto py-1">
                   {product.images.map((image, index) => (
                     <button
@@ -139,11 +138,11 @@ const ProductDetail: React.FC = () => {
               className="space-y-6"
             >
               <div>
-                <h1 className="text-3xl font-bold">{product.name}</h1>
-                <p className="text-muted-foreground">{product.brand}</p>
+                <h1 className="text-3xl font-bold">{product?.name}</h1>
+                <p className="text-muted-foreground">{product?.brand}</p>
               </div>
               
-              <p className="text-2xl font-semibold">${product.price}</p>
+              <p className="text-2xl font-semibold">${product?.price}</p>
               
               <div className="space-y-4">
                 {/* Size Selection */}
@@ -159,7 +158,7 @@ const ProductDetail: React.FC = () => {
                       <SelectValue placeholder="Select size" />
                     </SelectTrigger>
                     <SelectContent>
-                      {product.sizes.map((size) => (
+                      {product?.sizes.map((size) => (
                         <SelectItem key={size} value={size.toString()}>
                           {size}
                         </SelectItem>
@@ -174,7 +173,7 @@ const ProductDetail: React.FC = () => {
                     Select Color
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {product.colors.map((color) => (
+                    {product?.colors.map((color) => (
                       <button
                         key={color}
                         onClick={() => setSelectedColor(color)}
@@ -231,7 +230,7 @@ const ProductDetail: React.FC = () => {
               <div className="pt-4 border-t border-border">
                 <h2 className="text-lg font-medium mb-2">Product Description</h2>
                 <p className="text-muted-foreground">
-                  {product.description}
+                  {product?.description}
                 </p>
               </div>
               
@@ -239,10 +238,10 @@ const ProductDetail: React.FC = () => {
               <div className="pt-4 border-t border-border">
                 <h2 className="text-lg font-medium mb-2">Product Details</h2>
                 <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                  <li>Brand: {product.brand}</li>
-                  <li>Category: {product.category}</li>
-                  <li>Available Sizes: {product.sizes.join(', ')}</li>
-                  <li>Available Colors: {product.colors.join(', ')}</li>
+                  <li>Brand: {product?.brand}</li>
+                  <li>Category: {product?.category}</li>
+                  <li>Available Sizes: {product?.sizes.join(', ')}</li>
+                  <li>Available Colors: {product?.colors.join(', ')}</li>
                 </ul>
               </div>
             </motion.div>
