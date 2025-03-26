@@ -2,7 +2,8 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { api, Product } from '@/lib/api';
+import { Product } from '@/lib/api';
+import { apiClient } from '@/lib/apiClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -50,7 +51,7 @@ const Admin: React.FC = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const data = await api.getProducts();
+        const data = await apiClient.getProducts();
         setProducts(data);
       } catch (error) {
         console.error('Failed to fetch products:', error);
@@ -87,7 +88,7 @@ const Admin: React.FC = () => {
     if (!confirm('Are you sure you want to delete this product?')) return;
     
     try {
-      await api.deleteProduct(id);
+      await apiClient.deleteProduct(id);
       setProducts(products.filter(p => p.id !== id));
       toast.success('Product deleted');
     } catch (error) {
@@ -102,7 +103,7 @@ const Admin: React.FC = () => {
     try {
       if (currentProduct.id) {
         // Update existing product
-        const updated = await api.updateProduct(
+        const updated = await apiClient.updateProduct(
           currentProduct.id,
           currentProduct as Product
         );
@@ -115,7 +116,7 @@ const Admin: React.FC = () => {
         }
       } else {
         // Create new product
-        const newProduct = await api.createProduct(
+        const newProduct = await apiClient.createProduct(
           currentProduct as Omit<Product, 'id'>
         );
         

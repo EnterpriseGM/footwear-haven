@@ -1,7 +1,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, Product } from '@/lib/api';
+import { Product } from '@/lib/api';
+import { apiClient } from '@/lib/apiClient';
 import { Button } from '@/components/ui/button';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -18,8 +19,8 @@ const Index: React.FC = () => {
     const fetchData = async () => {
       try {
         const [featured, allProducts] = await Promise.all([
-          api.getFeaturedProducts(),
-          api.getProducts()
+          apiClient.getFeaturedProducts(),
+          apiClient.getProducts()
         ]);
         
         setFeaturedProducts(featured);

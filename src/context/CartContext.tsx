@@ -1,18 +1,19 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { api, CartItem, Product } from '@/lib/api';
+import { Product, CartItem } from '@/lib/api';
+import { apiClient } from '@/lib/apiClient';
 import { toast } from 'sonner';
 
 interface CartContextType {
   items: CartItem[];
   products: Map<string, Product>;
+  totalItems: number;
+  totalPrice: number;
   loading: boolean;
   addToCart: (productId: string, quantity: number, size: number, color: string) => Promise<void>;
   updateQuantity: (itemId: string, quantity: number) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
   clearCart: () => Promise<void>;
-  totalItems: number;
-  totalPrice: number;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -22,56 +23,65 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [products, setProducts] = useState<Map<string, Product>>(new Map());
   const [loading, setLoading] = useState(true);
   
-  // Initialize cart
+  // Fetch initial cart and products
   useEffect(() => {
-    const initCart = async () => {
+    const fetchCartAndProducts = async () => {
       try {
-        const cartItems = await api.getCart();
+        const [cartItems, allProducts] = await Promise.all([
+          apiClient.getCart(),
+          apiClient.getProducts()
+        ]);
+        
         setItems(cartItems);
         
-        // Fetch product details for each cart item
-        const productDetails = new Map<string, Product>();
+        const productMap = new Map();
+        allProducts.forEach(product => {
+          productMap.set(product.id, product);
+        });
         
-        for (const item of cartItems) {
-          const product = await api.getProductById(item.productId);
-          if (product) {
-            productDetails.set(item.productId, product);
-          }
-        }
-        
-        setProducts(productDetails);
+        setProducts(productMap);
       } catch (error) {
-        console.error('Failed to initialize cart:', error);
+        console.error('Failed to fetch cart or products:', error);
+        toast.error('Failed to load cart');
       } finally {
         setLoading(false);
       }
     };
     
-    initCart();
+    fetchCartAndProducts();
   }, []);
   
+  // Calculate total items and price
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+  
+  const totalPrice = items.reduce((sum, item) => {
+    const product = products.get(item.productId);
+    return sum + (product ? product.price * item.quantity : 0);
+  }, 0);
+  
+  // Add item to cart
   const addToCart = async (productId: string, quantity: number, size: number, color: string) => {
     try {
-      setLoading(true);
-      const newItem = await api.addToCart({ productId, quantity, size, color });
+      // The userId would normally come from auth context
+      const userId = 'user1'; 
       
-      // Check if we need to fetch the product
-      if (!products.has(productId)) {
-        const product = await api.getProductById(productId);
-        if (product) {
-          setProducts(new Map(products).set(productId, product));
-        }
-      }
+      const newItem = await apiClient.addToCart({
+        userId,
+        productId,
+        quantity,
+        size,
+        color
+      });
       
-      // Update items state
-      const existingItemIndex = items.findIndex(
+      // Update local state
+      const existingItem = items.find(
         item => item.productId === productId && item.size === size && item.color === color
       );
       
-      if (existingItemIndex >= 0) {
-        const updatedItems = [...items];
-        updatedItems[existingItemIndex].quantity += quantity;
-        setItems(updatedItems);
+      if (existingItem) {
+        setItems(items.map(item => 
+          item.id === existingItem.id ? { ...item, quantity: item.quantity + quantity } : item
+        ));
       } else {
         setItems([...items, newItem]);
       }
@@ -80,83 +90,61 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Failed to add to cart:', error);
       toast.error('Failed to add to cart');
-    } finally {
-      setLoading(false);
     }
   };
   
+  // Update item quantity
   const updateQuantity = async (itemId: string, quantity: number) => {
     try {
-      setLoading(true);
+      await apiClient.updateCartItem(itemId, { quantity });
       
-      if (quantity <= 0) {
-        await removeItem(itemId);
-        return;
-      }
-      
-      await api.updateCartItem(itemId, { quantity });
-      
-      setItems(
-        items.map(item => (item.id === itemId ? { ...item, quantity } : item))
-      );
-      
-      toast.success('Cart updated');
+      setItems(items.map(item => 
+        item.id === itemId ? { ...item, quantity } : item
+      ));
     } catch (error) {
       console.error('Failed to update cart:', error);
       toast.error('Failed to update cart');
-    } finally {
-      setLoading(false);
     }
   };
   
+  // Remove item from cart
   const removeItem = async (itemId: string) => {
     try {
-      setLoading(true);
-      await api.removeFromCart(itemId);
+      await apiClient.removeFromCart(itemId);
+      
       setItems(items.filter(item => item.id !== itemId));
       toast.success('Item removed from cart');
     } catch (error) {
-      console.error('Failed to remove item:', error);
-      toast.error('Failed to remove item');
-    } finally {
-      setLoading(false);
+      console.error('Failed to remove from cart:', error);
+      toast.error('Failed to remove from cart');
     }
   };
   
+  // Clear cart
   const clearCart = async () => {
     try {
-      setLoading(true);
-      await api.clearCart();
+      await apiClient.clearCart();
+      
       setItems([]);
       toast.success('Cart cleared');
     } catch (error) {
       console.error('Failed to clear cart:', error);
       toast.error('Failed to clear cart');
-    } finally {
-      setLoading(false);
     }
   };
-  
-  // Calculate total items and price
-  const totalItems = items.reduce((total, item) => total + item.quantity, 0);
-  
-  const totalPrice = items.reduce((total, item) => {
-    const product = products.get(item.productId);
-    return total + (product?.price || 0) * item.quantity;
-  }, 0);
   
   return (
     <CartContext.Provider
       value={{
         items,
         products,
+        totalItems,
+        totalPrice,
         loading,
         addToCart,
         updateQuantity,
         removeItem,
-        clearCart,
-        totalItems,
-        totalPrice,
+        clearCart
       }}
     >
       {children}

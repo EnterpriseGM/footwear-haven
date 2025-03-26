@@ -1,7 +1,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { api, Product } from '@/lib/api';
+import { Product } from '@/lib/api';
+import { apiClient } from '@/lib/apiClient';
 import { useCart } from '@/context/CartContext';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -29,7 +30,7 @@ const ProductDetail: React.FC = () => {
           return;
         }
         
-        const productData = await api.getProductById(id);
+        const productData = await apiClient.getProductById(id);
         if (!productData) {
           navigate('/');
           return;

@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { api, User } from '@/lib/api';
+import { User } from '@/lib/api';
+import { apiClient } from '@/lib/apiClient';
 import { toast } from 'sonner';
 
 interface AuthContextType {
@@ -22,7 +23,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check if user is already logged in
     const checkAuthStatus = async () => {
       try {
-        const currentUser = await api.getCurrentUser();
+        const currentUser = await apiClient.getCurrentUser();
         setUser(currentUser);
       } catch (error) {
         console.error('Auth status check failed:', error);
@@ -36,7 +37,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   const login = async (email: string, password: string) => {
     try {
-      const loggedInUser = await api.login(email, password);
+      const loggedInUser = await apiClient.login(email, password);
       if (loggedInUser) {
         setUser(loggedInUser);
         toast.success('Login successful');
@@ -54,7 +55,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   const logout = async () => {
     try {
-      await api.logout();
+      await apiClient.logout();
       setUser(null);
       toast.success('Logged out successfully');
     } catch (error) {

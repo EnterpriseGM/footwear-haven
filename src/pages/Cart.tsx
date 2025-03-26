@@ -9,22 +9,46 @@ import Footer from '@/components/Footer';
 import CartItem from '@/components/CartItem';
 import { ArrowLeft, ShoppingBag } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { apiClient } from '@/lib/apiClient';
+import { toast } from 'sonner';
 
 const Cart: React.FC = () => {
   const { items, products, loading, totalItems, totalPrice, clearCart } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
   
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!isAuthenticated) {
       navigate('/login');
       return;
     }
     
-    // Simulate checkout
-    alert('Checkout functionality would be implemented here.');
-    clearCart();
-    navigate('/');
+    try {
+      // Create a simple order object
+      const orderData = {
+        userId: user?.id,
+        shippingAddress: {
+          street: '123 Main St',
+          city: 'Exampleville',
+          state: 'CA',
+          zipCode: '12345',
+          country: 'US'
+        },
+        paymentMethod: 'credit_card'
+      };
+      
+      // Create the order
+      await apiClient.createOrder(orderData);
+      
+      // Clear the cart after successful order
+      clearCart();
+      
+      toast.success('Order placed successfully!');
+      navigate('/');
+    } catch (error) {
+      console.error('Failed to create order:', error);
+      toast.error('Failed to place order');
+    }
   };
   
   if (loading) {
